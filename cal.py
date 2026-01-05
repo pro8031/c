@@ -1,6 +1,14 @@
 import streamlit as st
 import pandas as pd
 
+# === 설정: 이미지 파일 경로 지정 ===
+# 실제 이미지 파일이 있는 경로와 일치해야 합니다.
+# 파이썬 스크립트와 같은 폴더에 이미지를 두는 것을 권장합니다.
+IMG_MASCOT = "fin_mascot.png"       # image_1.png (고양이 마스코트)
+IMG_LOGO_SMALL = "fin_logo_small.png" # image_2.png (작은 심볼)
+IMG_LOGO_FULL = "fin_logo_full.png"   # image_3.png (전체 로고 + 슬로건)
+# ==================================
+
 class MortgageCalculator:
     def __init__(self):
         # 2026-01-02 기준: 금융사별 가이드라인 (예시 데이터)
@@ -88,13 +96,32 @@ class MortgageCalculator:
 
 # --- Streamlit UI 구성 ---
 def main():
-    st.set_page_config(page_title="사업자 주택담보대출 통합계산기", layout="wide")
+    # [Brand update] 페이지 설정에 파비콘(page_icon) 추가
+    st.set_page_config(
+        page_title="핀모든 - 사업자 주택담보대출 계산기", 
+        page_icon=IMG_LOGO_SMALL, 
+        layout="wide"
+    )
     
-    st.title("🏗️ 사업자 주택담보대출 통합계산기")
+    # [Brand update] 메인 상단 배너 이미지 적용
+    try:
+        st.image(IMG_LOGO_FULL, width=300) # 전체 로고를 깔끔하게 배치
+    except FileNotFoundError:
+        st.warning("⚠️ 로고 이미지 파일이 없습니다. 경로를 확인해주세요.")
+        st.title("🏗️ 사업자 주택담보대출 통합계산기")
+
+    st.markdown("### 💼 실사업자를 위한 스마트한 대출 비교 솔루션")
     st.markdown("---")
 
     # 사이드바: 입력 폼
     with st.sidebar:
+        # [Brand update] 사이드바 상단 마스코트 적용
+        try:
+            st.image(IMG_MASCOT, use_column_width=True)
+            st.markdown("<div style='text-align: center; color: gray; margin-bottom: 20px;'>▲ 핀모든 AI 분석가</div>", unsafe_allow_html=True)
+        except FileNotFoundError:
+             st.header("📝 차주 정보 입력")
+
         st.header("📝 차주 정보 입력")
         
         client_name = st.text_input("고객명", value="강성엽(실사업자)")
@@ -133,7 +160,8 @@ def main():
         if loan_type == "후순위(추가대출)":
             bond_max_ratio = st.slider("기존 대출 설정비율 (%)", 110, 130, 120) / 100.0
 
-        run_calc = st.button("🧮 계산 실행", type="primary")
+        st.markdown("---")
+        run_calc = st.button("🧮 핀모든 분석 시작", type="primary", use_container_width=True)
 
     # 메인 화면: 결과 출력
     if run_calc:
@@ -160,39 +188,4 @@ def main():
             bond_max_ratio=bond_max_ratio
         )
 
-        if not df_result.empty:
-            st.subheader(f"📊 {client_name}님 분석 리포트")
-            
-            # 최적의 상품 추출
-            best_limit = df_result.iloc[0]
-            
-            # 하이라이트 메시지
-            st.success(
-                f"✅ **최대 한도 추천:** {best_limit['금융사']} "
-                f"(금리 {best_limit['예상 금리(%)']}%) → "
-                f"추가 자금 **{best_limit['추가 확보금(만원)']:,.0f}만원** 확보 가능"
-            )
-            
-            # 데이터프레임 표시 (숫자 포맷팅 적용)
-            # 화면 표시용 복사본 생성
-            display_df = df_result.copy()
-            display_df['예상 금리(%)'] = display_df['예상 금리(%)'].apply(lambda x: f"{x:.2f}%")
-            display_df['총 한도(만원)'] = display_df['총 한도(만원)'].apply(lambda x: f"{x:,.0f}")
-            display_df['추가 확보금(만원)'] = display_df['추가 확보금(만원)'].apply(lambda x: f"{x:,.0f}")
-
-            st.dataframe(
-                display_df,
-                use_container_width=True,
-                hide_index=True
-            )
-            
-            st.info("💡 **참고:** 위 결과는 가조회 전 단순 시뮬레이션입니다. 실제 진행 시 LTV와 금리는 변동될 수 있습니다.")
-            
-        else:
-            st.error("❌ 조건에 맞는 대출 상품이 없거나, 한도가 부족하여 산출되지 않습니다.")
-
-    else:
-        st.info("👈 좌측 사이드바에 정보를 입력하고 '계산 실행' 버튼을 눌러주세요.")
-
-if __name__ == "__main__":
-    main()
+        if not df_result.empty
